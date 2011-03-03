@@ -5,7 +5,7 @@
 	initialState="buffering"
 	version="1.0">
 
-	<crop x="0" y="0" width="662" height="372" />
+	<crop x="0" y="0" width="0" height="0" />
 	
 	<!-- JavaScript API documentation: https://gist.github.com/8821fa317cc4a2f3aa64 -->
 	
