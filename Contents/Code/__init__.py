@@ -106,7 +106,10 @@ def ChannelVideos(sender,url,channel_name,name):
     # Log( video['title'] )
     # Log( video['url'] )
     # Log( video['thumb_url'] )
-  return dir
+  if len(dir) == 0:
+    return MessageContainer("Empty", "There aren't any items")
+  else:
+    return dir
   
 ###################################################################################################
 def Spotlight(sender):
