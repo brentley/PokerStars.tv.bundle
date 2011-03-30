@@ -88,7 +88,10 @@ def ChannelDetails(sender,url,name,thumb_url):
       )
     )
   
-  return dir
+  if len(dir) == 0:
+    return MessageContainer("Empty", "There aren't any items")
+  else:
+    return dir
   
 ###################################################################################################
 def ChannelVideos(sender,url,channel_name,name):
