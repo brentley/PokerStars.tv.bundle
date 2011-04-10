@@ -15,6 +15,8 @@ SCHEDULE_URL               = '%s/docs-pokerstarstv-schedule.html' % BASE_URL
 PLUGIN_ARTWORK             = 'art-default.jpg'
 PLUGIN_ICON_DEFAULT        = 'icon-default.png'
 
+EXCEPTIONS = ["ESPN Inside Deal","PokerStars Women","Sweat the Hand", "Editor's Picks", "EPTlive Berlin", "SCOOP 2011"]
+
 ###############################################################################
 def Start():
   Plugin.AddPrefixHandler(PLUGIN_PREFIX, MainMenu, L('pokerstars.tv'), PLUGIN_ICON_DEFAULT, PLUGIN_ARTWORK)
@@ -46,19 +48,33 @@ def MainMenu():
     img      = channel.xpath('.//img')
     name     = img[0].get('alt').replace(' logo', '')
     thumb_url = img[0].get('src')
-    # Log( url )
+    #Log( url )
     # Log( name )
-    # Log( thumb_url ) 
-    dir.Append(
+    # Log( thumb_url )
+    if name not in EXCEPTIONS:
+      dir.Append(
+        Function(
+          DirectoryItem( 
+            ChannelDetails,
+            name,
+            thumb=Function(GetThumb, thumb_url=thumb_url)
+          ),
+          url=url,
+          name=name,
+          thumb_url=thumb_url
+        )
+      )
+    else:
+      dir.Append(
       Function(
-        DirectoryItem( 
-          ChannelDetails,
+        DirectoryItem(
+          ChannelVideos,
           name,
           thumb=Function(GetThumb, thumb_url=thumb_url)
         ),
         url=url,
-        name=name,
-        thumb_url=thumb_url
+        channel_name=name,
+        name=name
       )
     )
   return dir
@@ -66,10 +82,14 @@ def MainMenu():
 ###################################################################################################
 def ChannelDetails(sender,url,name,thumb_url):
   dir = MediaContainer(title2=name, viewGroup='ChannelDetails')
-  # url = url.replace('-2.html', '-full-episodes.html')
+  url = url.replace('-2.html', '-full-episodes.html')
+  if url[:7] == 'http://':
+    the_url = url
+  else:
+    the_url = BASE_URL + url
   # Log( 'Getting episodes from: ' + BASE_URL + url )
   # episodes = HTML.ElementFromURL( BASE_URL + url ).xpath()
-  the_url = BASE_URL + url
+  #the_url = BASE_URL + url
   # Log( 'Getting details from: ' + the_url )
   sections = HTML.ElementFromURL(the_url, errors='ignore').xpath('//*/div[@id="template"]/div[@id="clm-one"]/div/ul/li/a')
   for section in sections:
