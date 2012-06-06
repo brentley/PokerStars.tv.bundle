@@ -20,64 +20,36 @@ EXCEPTIONS = ["ESPN Inside Deal","PokerStars Women","Sweat the Hand", "Editor's 
 ###############################################################################
 def Start():
   Plugin.AddPrefixHandler(PLUGIN_PREFIX, MainMenu, L('pokerstars.tv'), PLUGIN_ICON_DEFAULT, PLUGIN_ARTWORK)
-  Plugin.AddViewGroup('Channels', viewMode='InfoList', mediaType='items')
-  Plugin.AddViewGroup('ChannelDetails', viewMode='InfoList', mediaType='items')
-  Plugin.AddViewGroup('ChannelVideos', viewMode='InfoList', mediaType='items')
+  Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
+  
+  ObjectContainer.title1 = L('Pokerstars.tv')
+  ObjectContainer.art = R(PLUGIN_ARTWORK)
+  ObjectContainer.view_group = 'InfoList'
 
-  MediaContainer.title1 = L('pokerstars.tv')
-  MediaContainer.art = R(PLUGIN_ARTWORK)
-
-  DirectoryItem.thumb = R(PLUGIN_ICON_DEFAULT)
-  WebVideoItem.thumb = R(PLUGIN_ICON_DEFAULT)
+  DirectoryObject.thumb = R(PLUGIN_ICON_DEFAULT)
 
   HTTP.CacheTime = CACHE_1HOUR
   HTTP.Headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.2.13) Gecko/20101203 Firefox/3.6.13'
 
 ###################################################################################################
-# MENUS
-###################################################################################################
 def MainMenu():
-  dir = MediaContainer(viewGroup='Channels')
-  dir.Append(
-    Function( DirectoryItem( Spotlight, 'Spotlight' ) )
-  )
-  
-  channels = HTML.ElementFromURL( CHANNELS_URL, errors='ignore').xpath('//*/div[@id="template"]/ul/li/div[@class="content clearfix"]/a[@class="logo"]')
-  for channel in channels:
-    url      = channel.get('href')
-    img      = channel.xpath('.//img')
-    name     = img[0].get('alt').replace(' logo', '')
-    thumb_url = img[0].get('src')
-    #Log( url )
-    # Log( name )
-    # Log( thumb_url )
-    if name not in EXCEPTIONS:
-      dir.Append(
-        Function(
-          DirectoryItem( 
-            ChannelDetails,
-            name,
-            thumb=Function(GetThumb, thumb_url=thumb_url)
-          ),
-          url=url,
-          name=name,
-          thumb_url=thumb_url
-        )
-      )
-    else:
-      dir.Append(
-      Function(
-        DirectoryItem(
-          ChannelVideos,
-          name,
-          thumb=Function(GetThumb, thumb_url=thumb_url)
-        ),
-        url=url,
-        channel_name=name,
-        name=name
-      )
-    )
-  return dir
+    oc = ObjectContainer()
+    oc.add(DirectoryObject(key=Callback(Spotlight), title="Spotlight"))
+    
+    channels = HTML.ElementFromURL(CHANNELS_URL, errors='ignore').xpath('//*/div[@id="template"]/ul/li/div[@class="content clearfix"]/a[@class="logo"]')
+    for channel in channels:
+        url      = channel.get('href')
+        img      = channel.xpath('.//img')
+        name     = img[0].get('alt').replace(' logo', '')
+        thumb_url = img[0].get('src')
+        if name not in EXCEPTIONS:
+            oc.add(DirectoryObject(key=Callback(ChannelDetails, url=url, name=name, thumb_url=thumb_url),
+                title=name, thumb=Resource.ContentsOfURLWithFallback(url=thumb_url, fallback=PLUGIN_ICON_DEFAULT)))
+        else:
+            oc.add(DirectoryObject(key=Callback(ChannelVideos, url=url, channel_name=name, name=name),
+                title=name, thumb=Resource.ContentsOfURLWithFallback(url=thumb_url, fallback=PLUGIN_ICON_DEFAULT)))
+      
+    return oc
   
 ###################################################################################################
 def ChannelDetails(sender,url,name,thumb_url):
