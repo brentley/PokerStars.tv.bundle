@@ -1,4 +1,7 @@
-import re
+#import re
+RE_THUMB_SUB = Regex(r'.*url\(([^\?)]+).*')
+RE_PAGES_SUB = Regex(r'\?.*')
+RE_LAST_PAGE_SUB = Regex(r'[0-9]+$')
 
 PLUGIN_TITLE               = 'PokerStars.tv'
 PLUGIN_PREFIX              = '/video/pokerstarstv'
@@ -106,8 +109,6 @@ def Spotlight():
         return oc
 
 ###################################################################################################
-# HELPERS
-###################################################################################################
 def GetChannelVideos(url, is_sub_page=False ):
     videos = []
     the_url = BASE_URL + url
@@ -120,8 +121,11 @@ def GetChannelVideos(url, is_sub_page=False ):
         videos.append({
             'title': title_span.text.strip(),
             'url': video.get('href'),
-            'thumb_url': re.sub( r'.*url\(([^\?)]+).*', r'\1', thumb_span.get('style') )
+            thumb_url : RE_THUMB_SUB.sub(r'\1', thumb_span.get('style'))
+            #'thumb_url': re.sub( r'.*url\(([^\?)]+).*', r'\1', thumb_span.get('style') )
             })
+            
+            
   
     if is_sub_page == False:
         # see if there are any other pages
@@ -129,7 +133,9 @@ def GetChannelVideos(url, is_sub_page=False ):
   
     if len(last_page):
         last_page = last_page[0]
-        pages_url = re.sub( r'\?.*', '', url ) + re.sub( r'[0-9]+$', '', last_page.get('href') )
+        
+        #pages_url = re.sub( r'\?.*', '', url ) + re.sub( r'[0-9]+$', '', last_page.get('href') )
+        pages_url = RE_PAGES_SUB.sub('', url) + RE_LAST_PAGE_SUB.sub('', last_page.get('href'))
         total_pages = int(last_page.text.strip())
         i = 2
         while (i <= total_pages):
