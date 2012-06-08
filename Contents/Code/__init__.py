@@ -75,7 +75,10 @@ def ChannelVideos(url,channel_name,name):
     videos = GetChannelVideos(url)
   
     for video in videos:
-        oc.add(VideoClipObject(url=video['url'], title=video['title'],
+        url=video['url']
+        if not url.startswith('http://'):
+          url = BASE_URL + url
+        oc.add(VideoClipObject(url=url, title=video['title'],
             thumb=Resource.ContentsOfURLWithFallback(url=video['thumb_url'] + '?maxwidth=512&maxheight=512', fallback=PLUGIN_ICON_DEFAULT)))
 
     if len(oc) == 0:
@@ -92,12 +95,14 @@ def Spotlight():
         title     = highlight.xpath('.//h3/a')[0].text.strip()
         link      = highlight.xpath('.//a[@class="thumb"]')[0]
         url       = link.get('href')
+        if not url.startswith('http://'):
+          url = BASE_URL + url
         thumb_url = link.xpath('.//img')[0].get('src')
         desc      = highlight.xpath('.//a[2]')[0].text.strip()
         is_video  = ( url.find('poker-video') != -1 )
     
         if is_video:
-            oc.add(VideoClipObject(url=rul, title=title, summary=desc,
+            oc.add(VideoClipObject(url=url, title=title, summary=desc,
                 thumb=Resource.ContentsOfURLWithFallback(url=thumb_url, fallback=PLUGIN_ICON_DEFAULT)))
         else:
             oc.add(DirectoryObject(key=Callback(ChannelDetails(url=url, name=title, thumb_url=thumb_url),
@@ -121,7 +126,7 @@ def GetChannelVideos(url, is_sub_page=False ):
         videos.append({
             'title': title_span.text.strip(),
             'url': video.get('href'),
-            thumb_url : RE_THUMB_SUB.sub(r'\1', thumb_span.get('style'))
+            'thumb_url' : RE_THUMB_SUB.sub(r'\1', thumb_span.get('style'))
             #'thumb_url': re.sub( r'.*url\(([^\?)]+).*', r'\1', thumb_span.get('style') )
             })
             
